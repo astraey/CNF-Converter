@@ -30,6 +30,24 @@ def isImplicationCandidate(logic):
         return False
 
 #-----------------------------------------------#
+#Checks if the logic is a double exclusiveOr 
+#-----------------------------------------------#
+def isExclusiveOrCandidate(logic):
+    if logic[0] == 'exor' and len(logic) == 3:
+        return True
+    else:
+        return False
+
+#-----------------------------------------------#
+#Checks if the logic is a double exclusiveOr 
+#-----------------------------------------------#
+def isIfteCandidate(logic):
+    if logic[0] == 'ifte' and len(logic) == 4:
+        return True
+    else:
+        return False
+
+#-----------------------------------------------#
 #Checks if the logic is a double implication 
 #-----------------------------------------------#
 def isIFFCandidate(logic):
@@ -60,6 +78,8 @@ def isDistributionCandidate(logic):
                 if logic[i][0] == 'and':
                     return True
     return False
+
+
 
 #***************************************************************************************************************************#
 #******************************************************HELPER METHODS*******************************************************#
@@ -216,6 +236,54 @@ def eliminateIFF(logic):
     result.append('and')
     result.append(eliminateImplication(['implies', logic[1], logic[2]]))
     result.append(eliminateImplication(['implies', logic[2], logic[1]]))
+    
+    return result
+
+
+#------------------------------------------------------#
+#Eliminate ExclusiveOr for a given logic
+#A(X)B becomes (AVB) or npt(AVB) 
+#ExclusiveOr can take only two variables eg. A(X)B
+#------------------------------------------------------#
+def eliminateExclusiveOr(logic):
+    
+    result = []
+
+
+    result.append('and')
+
+    result.append(['or', logic[1], logic[2]])
+
+    negation1 = ['not', logic[1]]
+    negation2 = ['not', logic[2]]
+
+    result.append(['or', negation1, negation2])
+
+    
+    return result
+
+
+#------------------------------------------------------#
+#Eliminate Ifte for a given logic
+#ifte(A, B, C) becomes (A -> B) V (!A -> C) 
+#Ifte can take three variables
+#------------------------------------------------------#
+def eliminateIfte(logic):
+    
+    #MODIFY
+
+    result = []
+
+
+    result.append('or')
+
+    result.append(['implies', logic[1], logic[2]])
+
+    negation1 = ['not', logic[1]]
+    
+
+    result.append(['implies', negation1, logic[3]])
+
     
     return result
 
@@ -378,6 +446,62 @@ def parseCleanUp(logic):
 
 
 #------------------------------------------------------#
+#Checks if the given logic statement is an ExclusiveOr
+#Recursively goes deeper and removes all instances of 
+#ExclusiveOr
+#------------------------------------------------------#
+def parseExclusiveOr(logic):
+
+    
+    #If it is an ExclusiveOr statement, replace logic with the one we get by eliminating ExclusiveOr
+    if isExclusiveOrCandidate(logic):
+        logic = eliminateExclusiveOr(logic)
+    
+    
+    #For all the attributes in the logic repeat the process recursively
+    for i in range(1, len(logic)):
+        if len(logic[i]) > 1:
+            logic[i] = parseExclusiveOr(logic[i])
+    
+
+    #If it is an ExclusiveOr statement, replace logic with the one we get by eliminating ExclusiveOr
+    if isExclusiveOrCandidate(logic):
+        logic = eliminateExclusiveOr(logic)
+
+       
+    #return the final logic statement devoid of all implications and ExclusiveOr
+    return logic
+
+#------------------------------------------------------#
+#Checks if the given logic statement is an ifte
+#Recursively goes deeper and removes all instances of 
+#ifte
+#------------------------------------------------------#
+def parseIfte(logic):
+
+    
+    #If it is an ifte statement, replace logic with the one we get by eliminating ifte
+    if isIfteCandidate(logic):
+        logic = eliminateIfte(logic)
+    
+    
+    #For all the attributes in the logic repeat the process recursively
+    for i in range(1, len(logic)):
+        if len(logic[i]) > 1:
+            logic[i] = parseIfte(logic[i])
+    
+
+    #If it is an ifte statement, replace logic with the one we get by eliminating ifte
+    if isIfteCandidate(logic):
+        logic = eliminateIfte(logic)
+
+       
+    #return the final logic statement devoid of all implications and ifte
+    return logic
+
+
+
+#------------------------------------------------------#
 #Checks if the given logic statement is an IFF or an 
 #IMPLICATION. 
 #Recursively goes deeper and removes all instances of 
@@ -409,6 +533,7 @@ def parseImplications(logic):
        
     #return the final logic statement devoid of all implications and iffs
     return logic
+
 
 
 #----------------------------------------------------------#
@@ -498,14 +623,25 @@ def parseLogic(logic):
     #For logic with one Literal
     if len(logic) == 1:
         return logic[0]
+
+    result = logic
+
+    result = parseIfte(result)
+
+    result = parseExclusiveOr(result)
     
-    result = parseImplications(logic)
+    result = parseImplications(result)
+
     result = parseNOTs(result)
+
     result = simplify(result)
+
     result = parseDistribution(result)
+
     result = parseCleanUp(result)
+
     result = parseDuplicates(result)
-    
+
     return result
 
 
