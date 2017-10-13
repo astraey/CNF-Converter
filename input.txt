@@ -1,0 +1,6 @@
+5
+['exor', 'A', 'B']
+['and', ['or', 'A', 'B'], ['not', ['and', 'A', 'B']]]
+['or', ['implies', 'A', 'B'], ['implies', ['not', 'A'], 'C']]
+['ifte', 'A', 'B', 'C']
+['exor', ['iff', 'P', 'Q'], ['and', 'R', ['not', 'P']]]
