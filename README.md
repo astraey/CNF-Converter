@@ -33,7 +33,7 @@ So an example of the input file could be:
 
 <br>
 
-To run the code, you can simply exacute the following command: 
+To run the code, you can simply execute the following command: 
 
 ```
 python CNFconverter.py -i input.txt -o output.txt
